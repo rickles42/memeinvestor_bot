@@ -1,6 +1,8 @@
 import re
 import time
+from datetime import datetime
 import logging
+import pprint
 
 from sqlalchemy import create_engine, func
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -12,6 +14,8 @@ import message
 from models import Base, Investment, Investor
 
 logging.basicConfig(level=logging.INFO)
+
+requests = {}
 
 # Decorator to mark a commands that require a user
 # Adds the investor after the comment when it calls the method (see broke)
@@ -65,39 +69,78 @@ class CommentWorker():
         self.Session = sm
 
     def __call__(self, comment):
-        if comment.author.name.lower().endswith("_bot") or not comment.author:
+        if not comment.author:
             return
 
         if isinstance(comment, praw.models.Comment) and \
            (comment.is_root or \
-            not comment.parent() or \
-            comment.parent().author.name != config.username):
+            not comment.parent()):
             return
 
-        for reg in self.regexes:
-            matches = reg.search(comment.body.lower())
-            if not matches:
-                continue
 
-            cmd = matches.group()
-            attrname = cmd.split(" ")[0][1:]
 
-            if not hasattr(self, attrname):
-                continue
+        if comment.author.name == config.username:
+            # It's a bot reply from us
+            parent = comment.parent()
 
-            logging.info("%s: %s" % (comment.author.name, cmd))
+            logging.info(f"{comment} -- {datetime.fromtimestamp(comment.created_utc)} -- {comment.author.name} -- {parent}")
+            
+            # Parent might not be in here yet if we just started
+            # requests[parent] = comment
 
-            try:
-                sess = self.Session()
-                getattr(self, attrname)(sess, comment, *matches.groups())
-            except Exception as e:
-                logging.error(e)
-                sess.rollback()
-            else:
-                sess.commit()
+        else:
+            # It's a user command
+            cmd = None
+            for reg in self.regexes:
+                matches = reg.search(comment.body.lower())
+                if not matches:
+                    continue
 
-            sess.close()
-            break
+                cmd = matches.group()
+                attrname = cmd.split(" ")[0][1:]
+
+                if not hasattr(self, attrname):
+                    cmd = None
+                    continue
+                
+                break
+            
+            if not cmd:
+                return
+
+            logging.info(f"{comment} -- {datetime.fromtimestamp(comment.created_utc)} -- {comment.author.name} -- {cmd}")
+            # if comment in requests:
+            #     raise Exception("{commend} should not be in here!")
+            
+            # requests[comment] = None
+        
+        # pprint.pprint(requests)
+        
+
+        # for reg in self.regexes:
+        #     matches = reg.search(comment.body.lower())
+        #     if not matches:
+        #         continue
+
+        #     cmd = matches.group()
+        #     attrname = cmd.split(" ")[0][1:]
+
+        #     if not hasattr(self, attrname):
+        #         continue
+
+        #     logging.info("%s: %s" % (comment.author.name, cmd))
+
+        #     try:
+        #         sess = self.Session()
+        #         getattr(self, attrname)(sess, comment, *matches.groups())
+        #     except Exception as e:
+        #         logging.error(e)
+        #         sess.rollback()
+        #     else:
+        #         sess.commit()
+
+        #     sess.close()
+        #     break
 
     def ignore(self, sess, comment):
         pass
@@ -220,7 +263,7 @@ def main():
         logging.info("Warning: this is NOT a dry run - bot will post to Reddit!")
 
     logging.info("Pausing for db to initialize...")
-    time.sleep(30)
+    # time.sleep(10)
 
     logging.info("Setting up db connection...")
 
@@ -237,8 +280,8 @@ def main():
     reddit = praw.Reddit(
         client_id=config.client_id,
         client_secret=config.client_secret,
-        username=config.username,
-        password=config.password,
+        # username=config.username,
+        # password=config.password,
         user_agent=config.user_agent
     )
 
@@ -247,9 +290,10 @@ def main():
     while True:
         try:
             # Iterate over the latest comment replies in inbox
-            for comment in reddit.inbox.unread(limit=None):
+            # for comment in reddit.inbox.unread(limit=None):
+            for comment in reddit.subreddit('+'.join(config.subreddits)).stream.comments(skip_existing=True):
                 worker(comment)
-                comment.mark_read()
+                # comment.mark_read()
         except Exception as e:
             logging.error(e)
             time.sleep(10)

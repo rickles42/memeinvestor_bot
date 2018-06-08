@@ -8,47 +8,47 @@ services:
         depends_on:
           - mysql
 
-    calculator:
-        build: .
-        env_file: .env
-        restart: unless-stopped
-        command: ["python", "calculator.py"]
-        depends_on:
-          - mysql
+    # calculator:
+    #     build: .
+    #     env_file: .env
+    #     restart: unless-stopped
+    #     command: ["python", "calculator.py"]
+    #     depends_on:
+    #       - mysql
 
-    submitter:
-        build: .
-        env_file: .env
-        restart: unless-stopped
-        command: ["python", "submitter.py"]
+    # submitter:
+    #     build: .
+    #     env_file: .env
+    #     restart: unless-stopped
+    #     command: ["python", "submitter.py"]
 
-    api:
-        build: .
-        env_file: .env
-        restart: unless-stopped
-        command: [".local/bin/gunicorn", "--bind", "0.0.0.0:5000", "--access-logfile", "-", "--error-logfile", "-", "api:app"]
-        depends_on:
-          - mysql
+    # api:
+    #     build: .
+    #     env_file: .env
+    #     restart: unless-stopped
+    #     command: [".local/bin/gunicorn", "--bind", "0.0.0.0:5000", "--access-logfile", "-", "--error-logfile", "-", "api:app"]
+    #     depends_on:
+    #       - mysql
 
-    http:
-        build:
-            context: .
-            dockerfile: docker/Dockerfile-caddy
-        restart: unless-stopped
-        ports:
-          - 80:80
-          - 443:443
-        depends_on:
-          - api
-        volumes:
-          - ./docs:/static
-          - ${VOLUME_ROOT}/caddy/config:/caddy
-          - ${VOLUME_ROOT}/caddy/data:/root/.caddy
+    # http:
+    #     build:
+    #         context: .
+    #         dockerfile: docker/Dockerfile-caddy
+    #     restart: unless-stopped
+    #     ports:
+    #       - 80:80
+    #       - 443:443
+    #     depends_on:
+    #       - api
+    #     volumes:
+    #       - ./docs:/static
+    #       - ${VOLUME_ROOT}/caddy/config:/caddy
+    #       - ${VOLUME_ROOT}/caddy/data:/root/.caddy
 
     mysql:
         image: mariadb
         env_file: .env
         restart: unless-stopped
-        volumes:
-          - ${VOLUME_ROOT}/mysql:/var/lib/mysql
-          - ${VOLUME_ROOT}/my.cnf:/etc/mysql/my.cnf
+        # volumes:
+        #   - ${VOLUME_ROOT}/mysql:/var/lib/mysql
+        #   - ${VOLUME_ROOT}/my.cnf:/etc/mysql/my.cnf
