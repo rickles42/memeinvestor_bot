@@ -19,17 +19,15 @@ def main():
             parts = [x for x in line.strip().split("\t")]
 
             if len(parts) != 6:
-                assert(parts[1] == "xFAILx")
-                print(f"-- Skipping {parts[0]}: was xFAILx")
+                assert(parts[0] == "xFAILx")
+                print(f"-- Skipping {parts[1]}: was xFAILx")
                 continue
 
             investment_id = parts[0]
             response_id = parts[1]
             initial_upvotes = parts[2]
-            if parts[3] != initial_upvotes:
-                raise Exception("Mismatched initial upvotes: " + line)
-            if parts[4] != "NULL":
-                raise Exception("Not NULL: " + line)
+            if parts[3] != initial_upvotes: raise Exception("Mismatched initial upvotes: " + line)
+            if parts[4] != "NULL": raise Exception("Not NULL: " + line)
             final_upvotes = parts[5]
 
             if final_upvotes == "NOPE":
