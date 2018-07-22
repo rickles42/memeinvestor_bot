@@ -32,9 +32,12 @@ def main():
             initial_upvotes = parts[2]
             final_upvotes = parts[10]
 
+            if response_id == "0":
+                print(f"xFAILx\t{investment_id}")
+                continue
+
             if final_upvotes == "NULL":
                 comment = reddit.comment(response_id)
-                print(comment.body)
 
                 parsed_initial_upvotes = "NOPE"
                 parsed_final_upvotes = "NOPE"
