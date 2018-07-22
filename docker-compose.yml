@@ -5,3 +5,8 @@ services:
         build: .
         env_file: .env
         command: ["python", "backfill.py"]
+
+    backfill-populate:
+        build: .
+        env_file: .env
+        command: ["python", "backfill-populate.py"]
