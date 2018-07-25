@@ -11,7 +11,7 @@ from kill_handler import KillHandler
 from models import Base, Investment, Investor
 from stopwatch import Stopwatch
 
-InputFilename = "final_upvotes.test.txt"
+InputFilename = "final_upvotes.merged.txt"
 
 def main():
     with open(InputFilename, 'r') as f:
@@ -34,7 +34,7 @@ def main():
                 print(f"-- Skipping {investment_id}: was NOPE")
                 continue
 
-            print(f"UPDATE TABLE Investments SET final_upvotes={final_upvotes} WHERE id={investment_id};")
+            print(f"UPDATE Investments SET final_upvotes={final_upvotes} WHERE id={investment_id};")
 
 if __name__ == "__main__":
     main()
