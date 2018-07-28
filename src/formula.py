@@ -54,3 +54,14 @@ def linear_interpolate(x, x_0, x_1, y_0, y_1):
     c = y_0
     y = (m * x) + c
     return y
+
+def calculate_break_even(old):
+    sig_max = sigmoid_max(old)
+    sig_mp = sigmoid_midpoint(old)
+    sig_stp = sigmoid_steepness(old)
+
+    # Compute the value of (old - new) for which factor == 1.0
+    return inverse_sigmoid(1.0, sig_max, sig_mp, sig_stp)
+
+def inverse_sigmoid(y, maxvalue, midpoint, steepness):
+    return midpoint + (math.log(maxvalue / y - 1) / (-steepness))
