@@ -249,7 +249,7 @@ def modify_active(active_investments):
     return active_t
 
 min_invest_org = """
-The minimum possible investment is 100 MemeCoins.
+Sorry, that amount is too small. The minimum investment is 100 MemeCoins.
 """
 
 market_org = """

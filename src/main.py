@@ -63,6 +63,7 @@ class CommentWorker():
         r"!help",
         r"!ignore",
         r"!invest (\d+)",
+        r"!invest (\d+)(%)",
         r"!market",
         r"!top",
     ]
@@ -166,7 +167,7 @@ class CommentWorker():
         comment.reply_wrap(message.modify_create(comment.author, 1000))
 
     @req_user
-    def invest(self, sess, comment, investor, amount):
+    def invest(self, sess, comment, investor, *groups):
         if not isinstance(comment, praw.models.Comment):
             return
 
@@ -175,10 +176,21 @@ class CommentWorker():
                 comment.reply_wrap(message.inside_trading_org)
                 return
 
+        logging.info(f"groups: {groups}")
         try:
-            amount = int(amount)
+            number = int(groups[0])
         except ValueError:
             return
+
+        if len(groups) == 1:
+            # Only an amount was matched
+            amount = number
+        elif len(groups) == 2:
+            # Amount and '%' were matched
+            assert(groups[1] == "%")
+            amount = int(number / 100.0 * investor.balance)
+        else:
+            raise Exception("unexpected len(groups) for invest")
 
         if amount < 100:
             comment.reply_wrap(message.min_invest_org)
